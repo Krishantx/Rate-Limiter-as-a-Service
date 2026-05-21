@@ -6,9 +6,15 @@
 - The request body must contain an identiier that identifies a user:
 - Sample API Request Body: 
 {
-    "identifier" : "the users ip/username/credential",
-    "endpoint" : "/getUsers" (each endpoint may have a different rate limit),
+ "method": "POST/GET/PUT",
+ "identifiers" : [
+  "IP" : "xx.xx.xx.xx",
+  "user" : "username",
+  "API-Key" : "random API"
+  ]
+ "endpoint' : "/endpoint"
 }
+
 - Sample API Request Header:
 X-API-KEY: "API Key Issued to that particular Client"
 
@@ -22,3 +28,7 @@ X-API-KEY: "API Key Issued to that particular Client"
 - [ ] A client can choose to have multiple identifiers that are unique and can create a request body for their own use case. For example: A client may want to use IP as an idnetifier, a client may want to use API-Key as an identfier, a client may want to use user as an identifier and a client may want a combination on these
 
 - [ ] An API Endpoint that returns the configurations of that specific client.
+
+# Redis Data Structure:
+
+- Since we want the client to have dynamic identifiers as per their choice, we have to use a noSQL database. For now I will just use a hashMap for hashing the requests.
