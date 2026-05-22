@@ -16,27 +16,34 @@ public class Service {
     public boolean check(RequestDTO requestDTO) {
         TokenBucket tokenBucket = tempRepo.getIdentifier(requestDTO.getIdentifier());
         if (tokenBucket == null) {
-            // The request is brand new and a new entity needs to be created
-            tokenBucket = new TokenBucket();
-            tokenBucket.setTokens(20);
-            tokenBucket.setTimestamp(Instant.now().getEpochSecond());
-            System.out.println(tokenBucket);
+            tokenBucket = new TokenBucket(3, Instant.now().getEpochSecond());
+            tempRepo.putObject(requestDTO.getIdentifier(), tokenBucket);
             return false;
         }
 
         else {
             // Check if rate needs to be limited
+            TokenBucket newTokenBucket;
             long timeDifference = (Instant.now().getEpochSecond() - tokenBucket.getTimestamp());
-            int rateLimit = 20;
-            long newTokens =(rateLimit/60) * timeDifference;
-            long totalTokens = (tokenBucket.getTokens() + newTokens);
-            if (totalTokens > 1) {
-                tempRepo.putObject(
-                    requestDTO.getIdentifier(),
-                    new TokenBucket((int)totalTokens - 1, Instant.now().getEpochSecond())
-                );
+            int rateLimit = 3;
+            float totalTokens =(((float)rateLimit/60) * timeDifference) + tokenBucket.getTokens();
+            if (totalTokens >= 1) {
+                newTokenBucket = 
+                    new TokenBucket(
+                        totalTokens-1, 
+                        Instant.now().getEpochSecond()
+                    );
+                tempRepo.putObject(requestDTO.getIdentifier(), newTokenBucket);
                 return false;
             } else{
+                newTokenBucket = new TokenBucket(
+                    totalTokens, 
+                    Instant.now().getEpochSecond()
+                );
+                tempRepo.putObject(
+                    requestDTO.getIdentifier(), 
+                    newTokenBucket
+                );
                 return true;
             }
         }       

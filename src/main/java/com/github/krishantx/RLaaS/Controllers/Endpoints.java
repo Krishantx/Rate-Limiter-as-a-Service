@@ -19,7 +19,9 @@ public class Endpoints {
     @PostMapping("/check")
     public ResponseEntity<?> check(HttpServletRequest request, @RequestBody RequestDTO requestDTO) {
         boolean isExhausted = mainService.check(requestDTO);
-        if (isExhausted) return ResponseEntity.status(429).build();
-        else return ResponseEntity.status(200).body("Allowed");
+        if (isExhausted) 
+            return ResponseEntity.status(429).build();
+        else 
+            return ResponseEntity.status(200).build();
     }
 }

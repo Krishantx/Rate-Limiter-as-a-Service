@@ -10,7 +10,7 @@
  "identifiers" : [
   "IP" : "xx.xx.xx.xx",
   "user" : "username",
-  "API-Key" : "random API"
+  "API-Key" : "random API Key"
   ]
  "endpoint' : "/endpoint"
 }

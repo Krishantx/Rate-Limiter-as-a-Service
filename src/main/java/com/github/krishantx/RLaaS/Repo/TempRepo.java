@@ -1,6 +1,6 @@
 package com.github.krishantx.RLaaS.Repo;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Repository;
 
@@ -13,16 +13,18 @@ public class TempRepo {
         "tokens" : (int) x,
         "lastRequest" : (timestamp in s) y        
     }*/ 
-    HashMap<String, TokenBucket> map;
+    public final ConcurrentHashMap<String, TokenBucket> map;
 
     public TempRepo() {
-        map = new HashMap<>();
+        map = new ConcurrentHashMap<>();
     }
 
     public TokenBucket getIdentifier(String identifier) {
+        System.out.println("Searching ID" + identifier);
         return map.get(identifier);
     }
     public void putObject(String identifier, TokenBucket tokenBucket) {
+        System.out.println("Adding to cache");
         map.put(identifier, tokenBucket);
     }
     
