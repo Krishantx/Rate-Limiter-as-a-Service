@@ -22,28 +22,32 @@ public class Service {
         }
 
         else {
-            // Check if rate needs to be limited
             TokenBucket newTokenBucket;
             long timeDifference = (Instant.now().getEpochSecond() - tokenBucket.getTimestamp());
             int rateLimit = 3;
             float totalTokens =(((float)rateLimit/60) * timeDifference) + tokenBucket.getTokens();
             if (totalTokens >= 1) {
+
                 newTokenBucket = 
                     new TokenBucket(
                         totalTokens-1, 
                         Instant.now().getEpochSecond()
                     );
+
                 tempRepo.putObject(requestDTO.getIdentifier(), newTokenBucket);
                 return false;
             } else{
+
                 newTokenBucket = new TokenBucket(
                     totalTokens, 
                     Instant.now().getEpochSecond()
                 );
+
                 tempRepo.putObject(
                     requestDTO.getIdentifier(), 
                     newTokenBucket
                 );
+                
                 return true;
             }
         }       
