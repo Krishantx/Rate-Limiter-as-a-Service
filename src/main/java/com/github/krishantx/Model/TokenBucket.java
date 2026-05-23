@@ -29,6 +29,6 @@ public class TokenBucket {
 
     @Override
     public String toString() {
-        return tokens + " : " + timestamp;
+        return "Tokens : " + tokens + " \nTimestamp " + timestamp;
     }
 }
