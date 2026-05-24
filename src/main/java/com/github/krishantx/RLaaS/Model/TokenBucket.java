@@ -5,6 +5,12 @@ public class TokenBucket {
     private int rateLimit;
     private long timestamp;
 
+    public TokenBucket(float tokens, int rateLimit, long timestamp) {
+        this.tokens = tokens;
+        this.rateLimit = rateLimit;
+        this.timestamp = timestamp;
+    }
+
     public TokenBucket(){}
 
     public int getRateLimit() {

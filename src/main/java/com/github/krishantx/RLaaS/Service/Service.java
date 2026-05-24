@@ -38,10 +38,9 @@ public class Service {
                     .get()
                     .getRateLimit();
 
-
         TokenBucket tokenBucket = 
-            new TokenBucket(rateLimit, Instant.now().getEpochSecond());
-        redisService.save(key, tokenBucket, 1);
+            new TokenBucket(rateLimit, rateLimit, Instant.now().getEpochSecond());
+        redisService.save(key, tokenBucket, 5);
     }
 
     public boolean check(CheckDTO requestDTO, String apiKey) {
@@ -53,7 +52,7 @@ public class Service {
             requestDTO.getEndpoint()
         );
 
-        int ttl = 5; //Hard coded need to change by database fetching.
+        int ttl = 10;
         TokenBucket tokenBucket = redisService.get(key);
 
         //For cache miss:
@@ -76,12 +75,18 @@ public class Service {
 
             if (totalTokens >= 1) {
                 newTokenBucket = 
-                    new TokenBucket(totalTokens-1, Instant.now().getEpochSecond());
-                redisService.save(requestDTO.getIdentifier(), newTokenBucket, ttl);
+                    new TokenBucket(totalTokens-1, 
+                            rateLimit, 
+                            Instant.now().getEpochSecond());
+                redisService.save(key, newTokenBucket, ttl);
                 return false;
+
             } else{
-                newTokenBucket = new TokenBucket(totalTokens, Instant.now().getEpochSecond());
-                redisService.save(requestDTO.getIdentifier(), newTokenBucket, ttl);
+                newTokenBucket = 
+                    new TokenBucket(totalTokens, 
+                            rateLimit, 
+                            Instant.now().getEpochSecond());
+                redisService.save(key, newTokenBucket, ttl);
                 return true;
             }
         }       
