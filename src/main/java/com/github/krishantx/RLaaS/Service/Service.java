@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 
 import com.github.krishantx.RLaaS.Model.CheckDTO;
 import com.github.krishantx.RLaaS.Model.DatabaseModels.ClientEntity;
@@ -16,94 +16,74 @@ import com.github.krishantx.RLaaS.Repo.RedisRepo;
 
 @org.springframework.stereotype.Service
 public class Service {
-    @Autowired
-    RedisRepo redisService;
+    @Autowired RedisRepo redisService;
+    @Autowired ClientRepo clientRepo;
+    @Autowired PostgresRepo postgresRepo;
 
-    @Autowired
-    ApiKeyService apiKeyService;
-
-    @Autowired
-    PostgresRepo postgresRepo;
-    @Autowired
-    ClientRepo clientRepo;
-    public ResponseEntity<?> addEndpoint(String endpoint, int rateLimit, String apiKey) {
-        EndpointEntity endpointEntity = new EndpointEntity(endpoint, rateLimit);
+    @Async
+    public void modifyCache(String key, String apiKey, String endpoint) {
         Optional<ClientEntity> client = clientRepo.findByApiKey(apiKey);
+        if (client.isEmpty()) { return; }
 
-        if (client.isEmpty()) 
-            return ResponseEntity.status(404).body("Incorrect API Key");
+        Optional<EndpointEntity> endpointModel = 
+            postgresRepo
+                .findByEndpointAndClient(
+                    endpoint, 
+                    client.get()
+                );
 
-        Optional<EndpointEntity> fetchFromDB = postgresRepo.findByEndpointAndClient(endpoint, client.get());
-        
-        if (fetchFromDB.isEmpty()) {
-            endpointEntity.setClient(client.get());
-            
-            postgresRepo.save(endpointEntity);
-            return ResponseEntity.status(200).build();
-        }
-        else
-            return ResponseEntity.status(409).build();
+        if (endpointModel.isEmpty()){ return; }
+
+        int rateLimit = endpointModel
+                    .get()
+                    .getRateLimit();
+
+
+        TokenBucket tokenBucket = 
+            new TokenBucket(rateLimit, Instant.now().getEpochSecond());
+        redisService.save(key, tokenBucket, 1);
     }
 
-    public boolean check(CheckDTO requestDTO) {
-        long ttl = 5;
-        System.out.println(redisService.get(requestDTO.getIdentifier()));
-        TokenBucket tokenBucket = redisService.get(requestDTO.getIdentifier());
-        System.out.println(tokenBucket);
+    public boolean check(CheckDTO requestDTO, String apiKey) {
+        //Create Redis Key;
+        String key = RedisRepo.createRedisKey(
+            apiKey,
+            requestDTO.getMethod(),
+            requestDTO.getIdentifier(),
+            requestDTO.getEndpoint()
+        );
+
+        int ttl = 5; //Hard coded need to change by database fetching.
+        TokenBucket tokenBucket = redisService.get(key);
+
+        //For cache miss:
         if (tokenBucket == null) {
-            tokenBucket = new TokenBucket(3, Instant.now().getEpochSecond());
-            redisService.save(requestDTO.getIdentifier(), tokenBucket, ttl);
+            modifyCache(
+                key, 
+                apiKey, 
+                requestDTO.getEndpoint()
+            );
             return false;
         }
 
+        //For cache hit:
         else {
             TokenBucket newTokenBucket;
             long timeDifference = (Instant.now().getEpochSecond() - tokenBucket.getTimestamp());
-            int rateLimit = 20;
+            int rateLimit = tokenBucket.getRateLimit();
             float totalTokens =(((float)rateLimit/60) * timeDifference) + tokenBucket.getTokens();
             totalTokens = Math.min(totalTokens, rateLimit);
+
             if (totalTokens >= 1) {
-
                 newTokenBucket = 
-                    new TokenBucket(
-                        totalTokens-1, 
-                        Instant.now().getEpochSecond()
-                    );
-
-                redisService.save(
-                    requestDTO.getIdentifier(), 
-                    newTokenBucket,
-                    ttl
-                );
-
+                    new TokenBucket(totalTokens-1, Instant.now().getEpochSecond());
+                redisService.save(requestDTO.getIdentifier(), newTokenBucket, ttl);
                 return false;
             } else{
-
-                newTokenBucket = new TokenBucket(
-                    totalTokens, 
-                    Instant.now().getEpochSecond()
-                );
-
-                redisService.save(
-                    requestDTO.getIdentifier(), 
-                    newTokenBucket,
-                    ttl
-                );
-
+                newTokenBucket = new TokenBucket(totalTokens, Instant.now().getEpochSecond());
+                redisService.save(requestDTO.getIdentifier(), newTokenBucket, ttl);
                 return true;
             }
         }       
-    }
-
-    public ClientEntity createClient(ClientEntity clientEntity) {
-        if (clientRepo.findByClientName(clientEntity.getClientName()).isEmpty()) {
-            String apiKey = apiKeyService.generateApiKey();
-            clientEntity.setApiKey(apiKey);
-            ClientEntity newClientEntity = clientRepo.save(clientEntity);
-            return newClientEntity;
-        }
-        else {
-            return null;
-        }
     }
 }

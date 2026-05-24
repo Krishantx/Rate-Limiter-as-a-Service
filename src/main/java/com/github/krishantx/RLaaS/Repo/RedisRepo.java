@@ -11,6 +11,10 @@ import com.github.krishantx.RLaaS.Model.TokenBucket;
 public class RedisRepo {
     private final RedisTemplate<String, TokenBucket> redisTemplate;
 
+    public static String createRedisKey(String apiKey, String method, String identifier, String endpoint) {
+        return method + "|" + endpoint + "|" + identifier + "|" + apiKey;
+    }
+
     public RedisRepo(RedisTemplate<String, TokenBucket> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }

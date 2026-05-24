@@ -2,9 +2,18 @@ package com.github.krishantx.RLaaS.Model;
 
 public class TokenBucket {
     private float tokens;
+    private int rateLimit;
     private long timestamp;
 
     public TokenBucket(){}
+
+    public int getRateLimit() {
+        return rateLimit;
+    }
+
+    public void setRateLimit(int rateLimit) {
+        this.rateLimit = rateLimit;
+    }
 
     public TokenBucket(float tokens, long timestamp) {
         this.tokens = tokens;
