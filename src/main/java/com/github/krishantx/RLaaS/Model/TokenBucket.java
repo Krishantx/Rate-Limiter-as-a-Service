@@ -1,4 +1,4 @@
-package com.github.krishantx.Model;
+package com.github.krishantx.RLaaS.Model;
 
 public class TokenBucket {
     private float tokens;

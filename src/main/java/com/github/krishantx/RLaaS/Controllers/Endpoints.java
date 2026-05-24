@@ -6,7 +6,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import com.github.krishantx.Model.RequestDTO;
+import com.github.krishantx.RLaaS.Model.AddEndpointDTO;
+import com.github.krishantx.RLaaS.Model.CheckDTO;
+import com.github.krishantx.RLaaS.Model.DatabaseModels.ClientEntity;
 import com.github.krishantx.RLaaS.Service.Service;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,11 +19,29 @@ public class Endpoints {
     Service mainService;
 
     @PostMapping("/check")
-    public ResponseEntity<?> check(HttpServletRequest request, @RequestBody RequestDTO requestDTO) {
+    public ResponseEntity<?> check(HttpServletRequest request, @RequestBody CheckDTO requestDTO) {
         boolean isExhausted = mainService.check(requestDTO);
         if (isExhausted) 
             return ResponseEntity.status(429).build();
         else 
             return ResponseEntity.status(200).build();
     }
+
+    @PostMapping("/createClient")
+    public ResponseEntity<?> createClient(HttpServletRequest request, @RequestBody ClientEntity clientEntity) {
+        ClientEntity newClientEntity = mainService.createClient(clientEntity);
+        if (newClientEntity == null)
+            return ResponseEntity.status(429).build();
+        return ResponseEntity.status(200).body(newClientEntity);
+    }
+
+    @PostMapping("/addEndpoint")
+    public ResponseEntity<?> addEndpoint(HttpServletRequest request, @RequestBody AddEndpointDTO addEndpoint) {
+
+        return mainService.addEndpoint(
+            addEndpoint.getEndpoint(), 
+            addEndpoint.getRateLimit(),
+            request.getHeader("x-api-key")
+        );
+    } 
 }

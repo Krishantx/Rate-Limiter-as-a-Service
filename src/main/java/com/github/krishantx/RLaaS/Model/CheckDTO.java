@@ -1,9 +1,9 @@
-package com.github.krishantx.Model;
+package com.github.krishantx.RLaaS.Model;
 
 
-public class RequestDTO {
+public class CheckDTO {
     private String identifier;
-    public RequestDTO(String identifier) {
+    public CheckDTO(String identifier) {
         this.identifier = identifier;
     }
     @Override

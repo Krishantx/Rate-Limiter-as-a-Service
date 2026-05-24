@@ -1,9 +1,11 @@
 package com.github.krishantx.RLaaS.Repo;
 
+import java.time.Duration;
+
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
-import  com.github.krishantx.Model.TokenBucket;
+import com.github.krishantx.RLaaS.Model.TokenBucket;
 
 @Repository
 public class RedisRepo {
@@ -17,8 +19,12 @@ public class RedisRepo {
         return redisTemplate.opsForValue().get(key);
     }
 
-    public void save(String key, TokenBucket value) {
-        redisTemplate.opsForValue().set(key, value);
+    public void save(String key, TokenBucket value, long ttl) {
+        redisTemplate.opsForValue().set(
+            key, 
+            value,
+            Duration.ofMinutes(ttl)
+        );
     }
 
 }

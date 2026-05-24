@@ -2,10 +2,10 @@
 
 
 ## Phase 1 - Core API
-- [ ] Create /check endpoint
-- [ ] Create request DTO
-- [ ] Create response DTO
-- [ ] Add validation
+- [x] Create /check endpoint
+- [x] Create request DTO
+- [x] Create response DTO
+- [x] Add validation
 Create a single client bare bone version
 Flow: A client recieves a HTTP request. It does not process it right away. The request is forwarded to the rate limiter with the following body.
 {
@@ -16,26 +16,25 @@ Flow: A client recieves a HTTP request. It does not process it right away. The r
 ---
 
 ## Phase 2 - In-Memory Rate Limiter
-- [ ] Create RateLimiter interface
-- [ ] Implement Fixed Window algorithm
-- [ ] Add expiry logic
-- [ ] Test with Postman
+- [x] Create RateLimiter interface
+- [x] Implement Fixed Window algorithm
+- [x] Add expiry logic
+- [x] Test with Postman
 
 ---
 
 ## Phase 3 - Redis
-- [ ] Install Redis
-- [ ] Connect Redis to Spring Boot
-- [ ] Replace HashMap with Redis
-- [ ] Add TTL support
+- [x] Install Redis
+- [x] Connect Redis to Spring Boot
+- [x] Replace HashMap with Redis
+- [x] Add TTL support
 
 ---
 
-## Bugs
-- [ ] Expiry resets incorrectly
-- [ ] Concurrent requests issue
-
----
+# Phase 4 - Perfecting the Single Tenant Architecture
+- [] Add an endpoint based Rate Limit
+- [] Implement the TTL logic
+- [] Implement @Async db population for endpoints
 
 ## Improvements
 - [ ] Add Docker
